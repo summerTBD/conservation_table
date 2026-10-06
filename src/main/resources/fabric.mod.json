@@ -1,0 +1,41 @@
+{
+	"schemaVersion": 1,
+	"id": "conservation_table",
+	"version": "${version}",
+	"name": "conservation_table",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/conservation_table/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"dev.hhl19.conservationtable.Conservation_table"
+		],
+		"client": [
+			"dev.hhl19.conservationtable.client.Conservation_tableClient"
+		],
+		"fabric-datagen": [
+			"dev.hhl19.conservationtable.client.Conservation_tableDataGenerator"
+		]
+	},
+	"mixins": [
+		"conservation_table.mixins.json",
+		{
+			"config": "conservation_table.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
