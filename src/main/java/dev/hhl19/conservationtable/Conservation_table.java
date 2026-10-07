@@ -1,6 +1,12 @@
 package dev.hhl19.conservationtable;
 
+import dev.hhl19.conservationtable.block.ModBlocks;
+import dev.hhl19.conservationtable.command.ConservationCommand;
+import dev.hhl19.conservationtable.menu.ModMenus;
+import dev.hhl19.conservationtable.net.ModNetworking;
+import dev.hhl19.conservationtable.store.ModAttachments;
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 
 import net.minecraft.resources.Identifier;
 
@@ -17,11 +23,15 @@ public class Conservation_table implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		// This code runs as soon as Minecraft is in a mod-load-ready state.
-		// However, some things (like resources) may still be uninitialized.
-		// Proceed with mild caution.
+		// 附着类型必须在世界/玩家数据加载前注册完毕
+		ModAttachments.init();
+		ModBlocks.init();
+		ModMenus.init();
+		ModNetworking.registerPayloads();
+		ModNetworking.registerServerHandlers();
+		CommandRegistrationCallback.EVENT.register(ConservationCommand::register);
 
-		LOGGER.info("Hello Fabric world!");
+		LOGGER.info("conservation_table initialized");
 	}
 
 	public static Identifier id(String path) {
