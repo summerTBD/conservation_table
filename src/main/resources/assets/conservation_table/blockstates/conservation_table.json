@@ -1,0 +1,7 @@
+{
+	"variants": {
+		"": {
+			"model": "conservation_table:block/conservation_table"
+		}
+	}
+}

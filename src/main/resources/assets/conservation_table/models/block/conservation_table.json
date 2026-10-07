@@ -1,0 +1,8 @@
+{
+	"parent": "minecraft:block/cube_bottom_top",
+	"textures": {
+		"top": "conservation_table:block/conservation_table_top",
+		"bottom": "conservation_table:block/conservation_table_side",
+		"side": "conservation_table:block/conservation_table_side"
+	}
+}

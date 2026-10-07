@@ -1,0 +1,17 @@
+{
+	"type": "minecraft:crafting_shaped",
+	"category": "misc",
+	"pattern": [
+		"PPP",
+		"PCP",
+		"PPP"
+	],
+	"key": {
+		"P": "minecraft:oak_planks",
+		"C": "minecraft:chest"
+	},
+	"result": {
+		"id": "conservation_table:conservation_table",
+		"count": 1
+	}
+}
