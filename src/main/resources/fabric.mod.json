@@ -2,16 +2,16 @@
 	"schemaVersion": 1,
 	"id": "conservation_table",
 	"version": "${version}",
-	"name": "conservation_table",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"name": "Conservation Table",
+	"description": "A player-bound item storage that keeps an exact count of every item you deposit. Right-click the table to browse your whole store in a paged grid and take back only what you put in. No conversion, no trading, no economy - just more room.",
 	"authors": [
-		"Me!"
+		"hhl19"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"homepage": "https://github.com/summerTBD/conservation_table",
+		"sources": "https://github.com/summerTBD/conservation_table"
 	},
-	"license": "CC0-1.0",
+	"license": "MIT",
 	"icon": "assets/conservation_table/icon.png",
 	"environment": "*",
 	"entrypoints": {
