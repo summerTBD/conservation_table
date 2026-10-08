@@ -7,7 +7,7 @@
 		"PPP"
 	],
 	"key": {
-		"P": "minecraft:oak_planks",
+		"P": "#minecraft:planks",
 		"C": "minecraft:chest"
 	},
 	"result": {
