@@ -12,9 +12,12 @@ For setup instructions, please see the [Fabric Documentation page](https://docs.
 
 ## Code guide
 
-New to modding? See [docs/CODE_GUIDE.md](docs/CODE_GUIDE.md) — a from-scratch walkthrough
-(Chinese) of the Java/Fabric/Minecraft concepts used in this project, plus a line-by-line
-reading of every source file.
+New to modding? Two companion docs:
+
+- [docs/CODE_GUIDE.md](docs/CODE_GUIDE.md) — the code side: Java/Fabric/Minecraft
+  concepts, block/GUI/networking, and how the screen rendering works.
+- [docs/DATA_PACK_GUIDE.md](docs/DATA_PACK_GUIDE.md) — the data side: recipes,
+  loot tables, tags, and how a resource id maps to a file path.
 
 ## License
 
