@@ -1,5 +1,6 @@
 package dev.hhl19.conservationtable.client.screen;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import dev.hhl19.conservationtable.client.ClientStoreCache;
 import dev.hhl19.conservationtable.menu.StoreMenu;
 import dev.hhl19.conservationtable.net.StoreActionPayload;
@@ -172,7 +173,9 @@ public class StoreScreen extends AbstractContainerScreen<StoreMenu> {
 	@Override
 	public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
 		int button = event.button();
-		if (button == 0 || button == 1) {
+		// 26.3 改用 SDL 输入，按钮编号是 1=左、2=中、3=右（不再是 GLFW 的 0/1/2），
+		// 所以必须用 InputConstants 的常量，不能写魔法数字。
+		if (button == InputConstants.MOUSE_BUTTON_LEFT || button == InputConstants.MOUSE_BUTTON_RIGHT) {
 			double mouseX = event.x();
 			double mouseY = event.y();
 			if (inButton(mouseX, mouseY, prevButtonX())) {
@@ -189,8 +192,13 @@ public class StoreScreen extends AbstractContainerScreen<StoreMenu> {
 			}
 			int index = hitIndex(mouseX, mouseY);
 			if (index >= 0) {
-				// 左键取一组，右键取 1 个，shift+左键取全部（数量由服务端钳制）。
-				long amount = button == 1 ? 1L : (event.hasShiftDown() ? Long.MAX_VALUE : 64L);
+				// 左键取一组、按住 shift 取全部；右键取 1 个。数量最终由服务端钳制。
+				long amount;
+				if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
+					amount = 1L;
+				} else {
+					amount = event.hasShiftDown() ? Long.MAX_VALUE : 64L;
+				}
 				ClientPlayNetworking.send(new StoreActionPayload(entries().get(index).stack(), amount));
 				return true;
 			}

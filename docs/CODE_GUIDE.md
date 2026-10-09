@@ -887,6 +887,7 @@ Codec 编出来的 NBT map：  {"minecraft:enchantments":{"minecraft:sharpness":
 | 所有 mod 数据都用 Mixin 挂 | 优先用 **Attachment**，更安全 |
 | `GuiGraphics` + `renderBg` + `renderItem` | 整个 GUI 渲染重写：**`GuiGraphicsExtractor`**，`extractBackground` / `extractContents` / `item` |
 | `mouseClicked(double, double, int)` | 改成 **`mouseClicked(MouseButtonEvent, boolean)`**；`hasShiftDown()` 从 `Screen` 挪到事件对象上 |
+| **鼠标按钮编号 `0=左 1=右`** | ⚠️ **26.3 改用 SDL，编号变成 `1=左 2=中 3=右`**。写 `button == 0` 永远不成立，写 `button == 1` 会**匹配到左键**。必须用 `InputConstants.MOUSE_BUTTON_LEFT/MIDDLE/RIGHT` |
 | `new Block(...)` 直接用 | **必须 `.setId(ResourceKey)`**（方块和物品都是），否则注册时抛异常 |
 | `api.itemgroup.v1.ItemGroupEvents` | 改名成 **`api.creativetab.v1.CreativeModeTabEvents`**，方法变成 `modifyOutputEvent(...).register(out -> out.accept(stack))` |
 | 数据包目录 `loot_tables/` `recipes/` | **都改成单数**：`loot_table/`、`recipe/`（1.21.5 起） |
@@ -1072,6 +1073,54 @@ ClientPlayNetworking.send(new StoreActionPayload(entries().get(index).stack(), a
 
 ⚠️ **注意：客户端一行数据都没改。** 它只发"我想取这个东西"。
 服务端收到后校验、扣减、再回发新快照。**这是防作弊的底线。**
+
+### 8.7.1 ⚠️ 鼠标按钮编号（踩过的坑）
+
+```java
+// 来源：StoreScreen.mouseClicked（修复后的写法）
+if (button == InputConstants.MOUSE_BUTTON_LEFT || button == InputConstants.MOUSE_BUTTON_RIGHT) {
+    ...
+    if (button == InputConstants.MOUSE_BUTTON_RIGHT) {
+        amount = 1L;
+    } else {
+        amount = event.hasShiftDown() ? Long.MAX_VALUE : 64L;
+    }
+}
+```
+
+**为什么必须用常量、不能写 `0`/`1`**：
+
+26.3 把输入系统从 GLFW 换成了 **SDL**，而两者的按钮编号不同：
+
+| | 左键 | 中键 | 右键 |
+|---|---|---|---|
+| GLFW（老版本 / 老教程） | 0 | 2 | 1 |
+| **SDL（26.3）** | **1** | **2** | **3** |
+
+MC 直接把 SDL 的编号透传出来，所以 `InputConstants` 是：
+
+```java
+MOUSE_BUTTON_LEFT   = 1
+MOUSE_BUTTON_MIDDLE = 2
+MOUSE_BUTTON_RIGHT  = 3
+```
+
+**照着老教程写 `button == 0` 会发生什么**（我们真踩过）：
+
+| 操作 | 实际值 | 写成 `button == 0 \|\| button == 1` 的后果 |
+|---|---|---|
+| 左键 | 1 | 进入分支，但 `button == 1 ? 取1个 : ...` 会**把左键当成右键** |
+| 右键 | 3 | 两个判断都不成立 → **完全穿透，什么都不做** |
+| Shift+左键 | 1 | `button == 1` 先短路 → **shift 被忽略** |
+
+症状是「只有左键有反应，shift 失灵，右键没反应」——**根因全在这一个数字上**。
+
+这也解释了为什么 `hasShiftDown()` 当时被误判为"不工作"：修饰键其实一直是好的
+（SDL 的 `SDL_GetModState()` 真实读取，`SDL_KMOD_SHIFT = 3` 正好对应 MC 的 `& 3`），
+**只是代码在检查 shift 之前就已经走错了分支**。
+
+> 💡 **教训**：按钮、按键、方向这类"枚举型"的值，**永远用常量**。
+> 魔法数字在版本升级时会静默失效——不报错，只是行为不对。
 
 ### 8.8 翻页
 
