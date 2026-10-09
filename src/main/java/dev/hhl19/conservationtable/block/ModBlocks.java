@@ -23,12 +23,12 @@ public final class ModBlocks {
 			ConservationTableBlock::new,
 			BlockBehaviour.Properties.of()
 					.mapColor(MapColor.WOOD)
-					.strength(2.5f)
+					.strength(0, 2.5f)
 					.sound(SoundType.WOOD));
 
 	/** 26.3 起方块和物品都必须 setId(...)，否则注册时会抛异常。 */
 	private static Block register(String name, Function<BlockBehaviour.Properties, Block> factory,
-	                              BlockBehaviour.Properties properties) {
+			BlockBehaviour.Properties properties) {
 		Identifier id = Conservation_table.id(name);
 
 		ResourceKey<Block> blockKey = ResourceKey.create(Registries.BLOCK, id);
