@@ -3,6 +3,7 @@ package dev.hhl19.conservationtable.client.screen;
 import com.mojang.blaze3d.platform.InputConstants;
 import dev.hhl19.conservationtable.client.ClientStoreCache;
 import dev.hhl19.conservationtable.menu.StoreMenu;
+import dev.hhl19.conservationtable.net.SortStorePayload;
 import dev.hhl19.conservationtable.net.StoreActionPayload;
 import dev.hhl19.conservationtable.net.StoreSyncPayload;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -79,6 +80,11 @@ public class StoreScreen extends AbstractContainerScreen<StoreMenu> {
 		return leftPos + imageWidth - BTN_MARGIN - BTN_W;
 	}
 
+	/** 排序按钮紧贴在「下一页」左边，不和中间的页码抢位置。 */
+	private int sortButtonX() {
+		return nextButtonX() - BTN_W - 4;
+	}
+
 	private int buttonY() {
 		return topPos + CONTROLS_Y + (CONTROLS_H - BTN_H) / 2;
 	}
@@ -124,6 +130,7 @@ public class StoreScreen extends AbstractContainerScreen<StoreMenu> {
 
 		drawButton(extractor, font, prevButtonX(), buttonY(), "<<", page > 0);
 		drawButton(extractor, font, nextButtonX(), buttonY(), ">>", page < pageCount() - 1);
+		drawButton(extractor, font, sortButtonX(), buttonY(), "z", !list.isEmpty());
 		extractor.centeredText(font, (page + 1) + " / " + pageCount(),
 				leftPos + imageWidth / 2, topPos + CONTROLS_Y + 5, TEXT);
 	}
@@ -188,6 +195,11 @@ public class StoreScreen extends AbstractContainerScreen<StoreMenu> {
 				if (page < pageCount() - 1) {
 					page++;
 				}
+				return true;
+			}
+			if (inButton(mouseX, mouseY, sortButtonX())) {
+				// 排序归服务端做，客户端只发个请求，等新快照回来。
+				ClientPlayNetworking.send(new SortStorePayload());
 				return true;
 			}
 			int index = hitIndex(mouseX, mouseY);

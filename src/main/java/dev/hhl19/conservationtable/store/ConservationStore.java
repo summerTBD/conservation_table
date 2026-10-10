@@ -2,10 +2,13 @@ package dev.hhl19.conservationtable.store;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -30,6 +33,24 @@ public final class ConservationStore {
 
 	public static final Codec<ConservationStore> CODEC =
 			Entry.CODEC.listOf().xmap(ConservationStore::new, ConservationStore::snapshot);
+
+	/**
+	 * 列表的展示顺序：先按物品 id，再按组件（附魔、自定义名…），最后数量多的在前。
+	 * 前两级保证「同种聚在一起」，第三级让顺序稳定、可预测。
+	 */
+	public static final Comparator<Entry> BY_ITEM = (a, b) -> {
+		int byId = idOf(a.template()).compareTo(idOf(b.template()));
+		if (byId != 0) {
+			return byId;
+		}
+		int byComponents = Integer.compare(
+				ItemStack.hashItemAndComponents(a.template()),
+				ItemStack.hashItemAndComponents(b.template()));
+		if (byComponents != 0) {
+			return byComponents;
+		}
+		return Long.compare(b.count(), a.count());
+	};
 
 	// ItemStack 没有重写 equals/hashCode，不能直接当 Map 的键，所以用列表 + 显式比对。
 	private final List<Entry> entries = new ArrayList<>();
@@ -91,8 +112,20 @@ public final class ConservationStore {
 		return Collections.unmodifiableList(entries);
 	}
 
+	/**
+	 * 就地排序内部列表。只能在这里排：entries 的顺序既是写进存档的顺序，
+	 * 也是同步给客户端的顺序；view() 返回的是只读视图，排它会抛异常。
+	 */
+	public void sort(Comparator<Entry> comparator) {
+		entries.sort(comparator);
+	}
+
 	public boolean isEmpty() {
 		return entries.isEmpty();
+	}
+
+	private static Identifier idOf(ItemStack stack) {
+		return BuiltInRegistries.ITEM.getKey(stack.getItem());
 	}
 
 	private void merge(ItemStack stack, long amount) {

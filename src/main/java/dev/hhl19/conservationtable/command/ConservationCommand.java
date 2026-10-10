@@ -37,12 +37,13 @@ public final class ConservationCommand {
 	}
 
 	public static void register(CommandDispatcher<CommandSourceStack> dispatcher,
-	                            CommandBuildContext buildContext,
-	                            Commands.CommandSelection selection) {
+			CommandBuildContext buildContext,
+			Commands.CommandSelection selection) {
 		dispatcher.register(Commands.literal("conserve")
 				.executes(ConservationCommand::usage)
 				.then(Commands.literal("open").executes(ConservationCommand::open))
 				.then(Commands.literal("list").executes(ConservationCommand::list))
+				.then(Commands.literal("sort").executes(ConservationCommand::sort))
 				.then(Commands.literal("deposit").executes(ConservationCommand::deposit))
 				.then(Commands.literal("withdraw")
 						.then(Commands.argument("item", ItemArgument.item(buildContext))
@@ -53,7 +54,7 @@ public final class ConservationCommand {
 
 	private static int usage(CommandContext<CommandSourceStack> ctx) {
 		ctx.getSource().sendSuccess(() -> Component.literal(
-				"用法: /conserve open | /conserve list | /conserve deposit | /conserve withdraw <物品> [数量]"), false);
+				"用法: /conserve open | /conserve list | /conserve sort | /conserve deposit | /conserve withdraw <物品> [数量]"), false);
 		return 1;
 	}
 
@@ -94,6 +95,23 @@ public final class ConservationCommand {
 		return entries.size();
 	}
 
+	/** 给物品排序,达到相同种类的放在一起可以很好提升视觉体验 */
+	private static int sort(CommandContext<CommandSourceStack> ctx) {
+		ServerPlayer player = ctx.getSource().getPlayer();
+		if (player == null) {
+			return 0;
+		}
+		ConservationStore store = ModAttachments.storeOf(player);
+		if (store.isEmpty()) {
+			ctx.getSource().sendSuccess(() -> Component.literal("仓库是空的"), false);
+			return 0;
+		}
+		store.sort(ConservationStore.BY_ITEM);
+		ctx.getSource().sendSuccess(() -> Component.literal("已按物品种类排序"), true);
+		ModNetworking.sendSync(player);
+		return store.view().size();
+	}
+
 	/** 同类物品可能只靠附魔、命名等组件区分，所以把物品 id 和组件都显示出来。 */
 	private static Component describe(int index, ConservationStore.Entry entry) {
 		ItemStack template = entry.template();
@@ -116,8 +134,7 @@ public final class ConservationCommand {
 			return null;
 		}
 		RegistryOps<Tag> ops = RegistryOps.create(NbtOps.INSTANCE, source.registryAccess());
-		if (!(DataComponentPatch.CODEC.encodeStart(ops, patch).result().orElse(null)
-				instanceof CompoundTag compound)) {
+		if (!(DataComponentPatch.CODEC.encodeStart(ops, patch).result().orElse(null) instanceof CompoundTag compound)) {
 			return null;
 		}
 		StringBuilder text = new StringBuilder("[");

@@ -1,5 +1,6 @@
 package dev.hhl19.conservationtable.net;
 
+import dev.hhl19.conservationtable.store.ConservationStore;
 import dev.hhl19.conservationtable.store.ModAttachments;
 import dev.hhl19.conservationtable.store.StoreOps;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
@@ -18,6 +19,7 @@ public final class ModNetworking {
 		PayloadTypeRegistry.clientboundPlay()
 				.registerLarge(StoreSyncPayload.TYPE, StoreSyncPayload.CODEC, SYNC_PAYLOAD_LIMIT);
 		PayloadTypeRegistry.serverboundPlay().register(StoreActionPayload.TYPE, StoreActionPayload.CODEC);
+		PayloadTypeRegistry.serverboundPlay().register(SortStorePayload.TYPE, SortStorePayload.CODEC);
 	}
 
 	public static void registerServerHandlers() {
@@ -26,6 +28,16 @@ public final class ModNetworking {
 			// 服务端权威：数量由服务端钳制，不信任客户端传来的值。
 			long taken = StoreOps.withdrawToInventory(player, payload.stack(), payload.amount());
 			if (taken > 0) {
+				sendSync(player);
+			}
+		});
+
+		// 排序同样由服务端执行：顺序既是存档顺序，也是下次同步的顺序。
+		ServerPlayNetworking.registerGlobalReceiver(SortStorePayload.TYPE, (payload, context) -> {
+			ServerPlayer player = context.player();
+			ConservationStore store = ModAttachments.storeOf(player);
+			if (!store.isEmpty()) {
+				store.sort(ConservationStore.BY_ITEM);
 				sendSync(player);
 			}
 		});
